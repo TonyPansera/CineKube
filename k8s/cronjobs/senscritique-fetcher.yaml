@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: senscritique-fetcher
+  namespace: cinekube
+spec:
+  # Run daily at 12:00 PM
+  schedule: "0 12 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: senscritique-fetcher
+            image: cinekube/senscritique-fetcher:latest
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: DATA_DIR
+              value: "/data"
+            # Optional: Add SENSCRITIQUE_RSS_URL here if it needs to change dynamically
+            volumeMounts:
+            - name: data-volume
+              mountPath: /data
+          restartPolicy: OnFailure
+          volumes:
+          - name: data-volume
+            persistentVolumeClaim:
+              claimName: data-pvc
