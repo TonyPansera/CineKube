@@ -1,23 +1,27 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: senscritique-fetcher
+  name: tmdb-weekly-releases
   namespace: cinekube
 spec:
-  # Run daily at 12:00 PM
-  schedule: "0 12 * * *"
+  # Run weekly on Mondays at 12:00 PM
+  schedule: "0 12 * * 1"
   jobTemplate:
     spec:
       template:
         spec:
           containers:
-          - name: senscritique-fetcher
-            image: cinekube/senscritique-fetcher:latest
+          - name: tmdb-weekly-releases
+            image: cinekube/tmdb-weekly-releases:latest
             imagePullPolicy: IfNotPresent
             env:
             - name: DATA_DIR
               value: "/data"
-            # Optional: Add SENSCRITIQUE_RSS_URL here if it needs to change dynamically
+            - name: TMDB_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: tmdb-secret
+                  key: TMDB_API_KEY
             volumeMounts:
             - name: data-volume
               mountPath: /data

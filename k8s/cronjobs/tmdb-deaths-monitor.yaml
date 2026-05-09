@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: tmdb-monitor
+  name: tmdb-deaths-monitor
   namespace: cinekube
 spec:
   # Run every 6 hours
@@ -11,8 +11,8 @@ spec:
       template:
         spec:
           containers:
-          - name: tmdb-monitor
-            image: cinekube/tmdb-monitor:latest
+          - name: tmdb-deaths-monitor
+            image: cinekube/tmdb-deaths-monitor:latest
             imagePullPolicy: IfNotPresent
             env:
             - name: DATA_DIR
