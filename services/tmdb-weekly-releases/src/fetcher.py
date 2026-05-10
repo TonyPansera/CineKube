@@ -52,21 +52,40 @@ def get_weekly_french_releases(start_date, end_date):
         print(f"Error fetching movies: {response.status_code} - {response.text}")
         return []
 
-def get_movie_director(movie_id):
-    """Fetch credits to extract the director's name."""
-    url = f"https://api.themoviedb.org/3/movie/{movie_id}/credits"
+def get_movie_extra_details(movie_id):
+    """Fetch credits to extract the director's name, and images to get a textless poster."""
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}"
     headers = {
         "accept": "application/json",
         "Authorization": f"Bearer {TMDB_API_KEY}"
     }
-    params = {"language": "fr-FR"}
+    params = {
+        "append_to_response": "credits,images",
+        "include_image_language": "null,xx,fr,en"
+    }
+    
+    director = "Unknown Director"
+    textless_posters = []
+    
     response = requests.get(url, headers=headers, params=params)
     if response.status_code == 200:
-        crew = response.json().get("crew", [])
+        data = response.json()
+        
+        # Extract Director
+        crew = data.get("credits", {}).get("crew", [])
         for member in crew:
             if member.get("job") == "Director":
-                return member.get("name")
-    return "Unknown Director"
+                director = member.get("name")
+                break
+                
+        # Extract Textless Posters
+        posters = data.get("images", {}).get("posters", [])
+        for p in posters:
+            # iso_639_1 being null or 'xx' usually indicates no text on the image
+            if p.get("iso_639_1") in (None, "xx"):
+                textless_posters.append(p.get("file_path"))
+
+    return director, textless_posters
 
 def main():
     print(f"Starting TMDB Weekly Releases Fetcher at {datetime.now().isoformat()}")
@@ -86,7 +105,7 @@ def main():
     for movie in movies:
         movie_id = movie.get("id")
         if movie_id:
-            director = get_movie_director(movie_id)
+            director, textless_posters = get_movie_extra_details(movie_id)
             
             # title is localized to French because we passed language=fr-FR
             french_title = movie.get("title")
@@ -100,6 +119,7 @@ def main():
                 "popularity": movie.get("popularity"),
                 "overview": movie.get("overview"),
                 "poster_path": movie.get("poster_path"),
+                "textless_poster_paths": textless_posters,
                 "detected_at": datetime.now().isoformat()
             }
             new_releases.append(release_info)

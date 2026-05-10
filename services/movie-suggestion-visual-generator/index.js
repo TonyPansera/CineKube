@@ -6,8 +6,8 @@ const { Resvg } = require('@resvg/resvg-js');
 
 // Configuration
 const DATA_DIR = process.env.DATA_DIR || '/data';
-const JSON_FILE = path.join(DATA_DIR, 'weekly_releases.json');
-const OUTPUT_DIR = path.join(DATA_DIR, 'visuals', 'weekly-releases');
+const JSON_FILE = path.join(DATA_DIR, 'monthly_suggestions.json');
+const OUTPUT_DIR = path.join(DATA_DIR, 'visuals', 'monthly-recommandations');
 
 // Fonts
 const FONT_REGULAR_PATH = path.join(__dirname, 'fonts', 'GlacialIndifference-Regular.otf');
@@ -31,24 +31,19 @@ async function downloadImageAsBase64(url) {
     }
 }
 
-function formatDate(dateString) {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-    });
-}
-
 function createCoverPageHtml(movie, base64Poster, base64Logo) {
     const logoDisplay = base64Logo ? "flex" : "none";
     const textDisplay = base64Logo ? "none" : "flex";
     const logoSrc = base64Logo || "";
 
+    // Display only the year from theatrical_release_date
+    const yearDisplay = movie.theatrical_release_date
+        ? movie.theatrical_release_date.substring(0, 4)
+        : 'Date inconnue';
+
     return html`
         <div style="display: flex; width: 1080px; height: 1350px; background-color: #bf2728; justify-content: center; align-items: center; position: relative; font-family: 'Glacial Indifference'; color: white;">
-            <div style="display: flex; width: 1080px; height: 1350px; position: relative;">
+            <div style="display: flex; width: 960px; height: 1350px; position: relative;">
                 <img src="${base64Poster}" style="width: 100%; height: 100%; object-fit: cover;" />
                 
                 <!-- Gradients -->
@@ -57,7 +52,7 @@ function createCoverPageHtml(movie, base64Poster, base64Logo) {
                 
                 <!-- Header -->
                 <div style="position: absolute; top: 50px; left: 50px; right: 50px; display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-size: 38px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">Les sorties de la semaine</div>
+                    <div style="font-size: 38px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">Nos recommandations mensuelles</div>
                     <img src="${logoSrc}" style="display: ${logoDisplay}; height: 110px; max-width: 320px; object-fit: contain;" />
                     <div style="display: ${textDisplay}; font-size: 38px; font-weight: bold; color: #bf2728; background-color: white; padding: 10px 20px; border-radius: 8px;">CineKube</div>
                 </div>
@@ -66,7 +61,7 @@ function createCoverPageHtml(movie, base64Poster, base64Logo) {
                 <div style="position: absolute; bottom: 70px; left: 50px; right: 50px; display: flex; flex-direction: column;">
                     <div style="font-size: 80px; font-weight: bold; line-height: 1.1; max-width: 860px;">${movie.title}</div>
                     <div style="font-size: 40px; margin-top: 25px; color: #e0e0e0; display: flex;">Réalisé par ${movie.director || 'Inconnu'}</div>
-                    <div style="font-size: 36px; margin-top: 20px; color: #bf2728; font-weight: bold; display: flex;">Le ${formatDate(movie.french_release_date)}</div>
+                    <div style="font-size: 36px; margin-top: 20px; color: #bf2728; font-weight: bold; display: flex;">${yearDisplay}</div>
                 </div>
             </div>
         </div>
@@ -80,7 +75,7 @@ function createSynopsisPageHtml(movie, base64Poster, base64Logo) {
 
     return html`
         <div style="display: flex; width: 1080px; height: 1350px; background-color: #bf2728; justify-content: center; align-items: center; position: relative; font-family: 'Glacial Indifference'; color: white;">
-            <div style="display: flex; width: 1080px; height: 1350px; position: relative;">
+            <div style="display: flex; width: 960px; height: 1350px; position: relative;">
                 <img src="${base64Poster}" style="width: 100%; height: 100%; object-fit: cover;" />
                 
                 <!-- Flat Overlay -->
@@ -88,7 +83,7 @@ function createSynopsisPageHtml(movie, base64Poster, base64Logo) {
                 
                 <!-- Header -->
                 <div style="position: absolute; top: 50px; left: 50px; right: 50px; display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-size: 38px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">Les sorties de la semaine</div>
+                    <div style="font-size: 38px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">Nos recommandations mensuelles</div>
                     <img src="${logoSrc}" style="display: ${logoDisplay}; height: 110px; max-width: 320px; object-fit: contain;" />
                     <div style="display: ${textDisplay}; font-size: 38px; font-weight: bold; color: #bf2728; background-color: white; padding: 10px 20px; border-radius: 8px;">CineKube</div>
                 </div>
@@ -102,6 +97,41 @@ function createSynopsisPageHtml(movie, base64Poster, base64Logo) {
                 <!-- Footer -->
                 <div style="position: absolute; bottom: 50px; right: 50px; display: flex;">
                     <div style="font-size: 28px; color: #bbbbbb;">Source : TMDB</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function createAnalysisPageHtml(movie, base64Poster, base64Logo) {
+    const logoDisplay = base64Logo ? "flex" : "none";
+    const textDisplay = base64Logo ? "none" : "flex";
+    const logoSrc = base64Logo || "";
+
+    return html`
+        <div style="display: flex; width: 1080px; height: 1350px; background-color: #bf2728; justify-content: center; align-items: center; position: relative; font-family: 'Glacial Indifference'; color: white;">
+            <div style="display: flex; width: 960px; height: 1350px; position: relative;">
+                <img src="${base64Poster}" style="width: 100%; height: 100%; object-fit: cover;" />
+                
+                <!-- Flat Overlay -->
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.75); display: flex;"></div>
+                
+                <!-- Header -->
+                <div style="position: absolute; top: 50px; left: 50px; right: 50px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-size: 38px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">Nos recommandations mensuelles</div>
+                    <img src="${logoSrc}" style="display: ${logoDisplay}; height: 110px; max-width: 320px; object-fit: contain;" />
+                    <div style="display: ${textDisplay}; font-size: 38px; font-weight: bold; color: #bf2728; background-color: white; padding: 10px 20px; border-radius: 8px;">CineKube</div>
+                </div>
+                
+                <!-- Content -->
+                <div style="position: absolute; top: 200px; bottom: 150px; left: 60px; right: 60px; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size: 55px; font-weight: bold; color: #bf2728; margin-bottom: 30px; display: flex;">NOTRE ANALYSE</div>
+                    <div style="font-size: 42px; line-height: 1.4; display: flex; flex-wrap: wrap;">${movie.analysis || 'Analyse en cours de rédaction...'}</div>
+                </div>
+
+                <!-- Footer -->
+                <div style="position: absolute; bottom: 50px; right: 50px; display: flex;">
+                    <div style="font-size: 28px; color: #bbbbbb;">Source : Devinci Lumière</div>
                 </div>
             </div>
         </div>
@@ -126,20 +156,19 @@ async function renderToImage(markup, outputPath, fonts) {
 }
 
 async function main() {
-    console.log('Starting Visual Generation Phase...');
+    console.log('Starting Monthly Suggestions Visual Generation...');
     
     if (!fs.existsSync(JSON_FILE)) {
         console.error(`Error: Data file not found at ${JSON_FILE}`);
         return;
     }
     
-    // Create a folder for this week's run
+    // Create a folder for this month's run using today's date (YYYY-MM-DD)
     const todayStr = new Date().toISOString().split('T')[0];
-    const weeklyOutputDir = path.join(OUTPUT_DIR, todayStr);
+    const monthlyOutputDir = path.join(OUTPUT_DIR, todayStr);
     
-    if (!fs.existsSync(weeklyOutputDir)) {
-        fs.mkdirSync(weeklyOutputDir, { recursive: true });
-    }
+    // Ensure the full directory tree exists: /data/visuals/monthly-recommandations/YYYY-MM-DD/
+    fs.mkdirSync(monthlyOutputDir, { recursive: true });
 
     // Load fonts
     const fontRegular = fs.readFileSync(FONT_REGULAR_PATH);
@@ -163,7 +192,7 @@ async function main() {
         console.log(`Processing: ${movie.title}...`);
         
         const posterPaths = movie.textless_poster_paths || [];
-        // Optional: fallback to default poster if no textless posters are available
+        // Fallback to default poster if no textless posters are available
         if (posterPaths.length === 0 && movie.poster_path) {
             posterPaths.push(movie.poster_path);
         }
@@ -175,19 +204,23 @@ async function main() {
             if (!base64Poster) continue;
 
             const safeTitle = movie.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            const prefix = path.join(weeklyOutputDir, `${safeTitle}_poster${i + 1}`);
+            const prefix = path.join(monthlyOutputDir, `${safeTitle}_poster${i + 1}`);
 
-            // Page 1
+            // Page 1 - Cover
             const html1 = createCoverPageHtml(movie, base64Poster, base64Logo);
             await renderToImage(html1, `${prefix}_page1.png`, satoriFonts);
             
-            // Page 2
+            // Page 2 - Synopsis
             const html2 = createSynopsisPageHtml(movie, base64Poster, base64Logo);
             await renderToImage(html2, `${prefix}_page2.png`, satoriFonts);
+
+            // Page 3 - Analysis
+            const html3 = createAnalysisPageHtml(movie, base64Poster, base64Logo);
+            await renderToImage(html3, `${prefix}_page3.png`, satoriFonts);
         }
     }
     
-    console.log('Visual Generation Complete!');
+    console.log('Monthly Suggestions Visual Generation Complete!');
 }
 
 main().catch(console.error);

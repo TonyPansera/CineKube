@@ -7,22 +7,43 @@ from datetime import datetime, timedelta
 TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjMjk2NWYzMzlhMjhjODUwYzhjNGY4Zjc1NmIyYzY5MiIsIm5iZiI6MTc3ODMxODc1Mi41NTYsInN1YiI6IjY5ZmVmZGEwMGEwYzdjOTZlN2FlOGNjOSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wp8Fks84UPXGOvVkQRsc1WyIUyvwsIe1827aK8EMdik")
 DATA_DIR = os.environ.get("DATA_DIR", "/data")
 
-def get_recent_person_changes():
-    """Fetch person changes in the last 24 hours from TMDB."""
+def get_recent_person_changes(hours=6):
+    """Fetch person changes in the last `hours` hours from TMDB using pagination."""
     url = "https://api.themoviedb.org/3/person/changes"
     headers = {
         "accept": "application/json",
         "Authorization": f"Bearer {TMDB_API_KEY}"
     }
     
-    # We could restrict to the last 24 hours, but by default the /changes API 
-    # without params returns recent changes (usually last 24h).
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        return response.json().get("results", [])
-    else:
-        print(f"Error fetching changes: {response.status_code} - {response.text}")
-        return []
+    end_time = datetime.now()
+    start_time = end_time - timedelta(hours=hours)
+    
+    params = {
+        "start_date": start_time.strftime("%Y-%m-%d %H:%M:%S"),
+        "end_date": end_time.strftime("%Y-%m-%d %H:%M:%S")
+    }
+    
+    all_changes = []
+    page = 1
+    total_pages = 1
+    
+    while page <= total_pages:
+        params["page"] = page
+        response = requests.get(url, headers=headers, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            all_changes.extend(data.get("results", []))
+            
+            # Update total_pages from the first request
+            if page == 1:
+                total_pages = data.get("total_pages", 1)
+                
+            page += 1
+        else:
+            print(f"Error fetching changes on page {page}: {response.status_code} - {response.text}")
+            break
+            
+    return all_changes
 
 def get_person_details(person_id):
     """Fetch details for a specific person to check their deathday."""
