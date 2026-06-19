@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: movie-suggestion
+  namespace: cinekube
+spec:
+  # Run at 08:00 AM on the 1st day of every month
+  schedule: "0 8 1 * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: movie-suggestion
+            image: cinekube/movie-suggestion:latest
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: DATA_DIR
+              value: "/data"
+            - name: TMDB_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: tmdb-secret
+                  key: TMDB_API_KEY
+            resources:
+              requests:
+                cpu: "100m"
+                memory: "64Mi"
+              limits:
+                cpu: "200m"
+                memory: "128Mi"
+            volumeMounts:
+            - name: data-volume
+              mountPath: /data
+          restartPolicy: OnFailure
+          volumes:
+          - name: data-volume
+            persistentVolumeClaim:
+              claimName: data-pvc

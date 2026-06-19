@@ -4,7 +4,7 @@ import requests
 from datetime import datetime, timedelta
 
 # Environment variables
-TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjMjk2NWYzMzlhMjhjODUwYzhjNGY4Zjc1NmIyYzY5MiIsIm5iZiI6MTc3ODMxODc1Mi41NTYsInN1YiI6IjY5ZmVmZGEwMGEwYzdjOTZlN2FlOGNjOSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wp8Fks84UPXGOvVkQRsc1WyIUyvwsIe1827aK8EMdik")
+TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "")
 DATA_DIR = os.environ.get("DATA_DIR", "/data")
 
 def get_recent_person_changes(hours=6):

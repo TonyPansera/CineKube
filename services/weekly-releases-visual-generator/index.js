@@ -10,8 +10,8 @@ const JSON_FILE = path.join(DATA_DIR, 'weekly_releases.json');
 const OUTPUT_DIR = path.join(DATA_DIR, 'visuals', 'weekly-releases');
 
 // Fonts
-const FONT_REGULAR_PATH = path.join(__dirname, 'fonts', 'GlacialIndifference-Regular.otf');
-const FONT_BOLD_PATH = path.join(__dirname, 'fonts', 'GlacialIndifference-Bold.otf');
+const FONT_REGULAR_PATH = path.join(__dirname, 'fonts', 'Montserrat-Regular.otf');
+const FONT_BOLD_PATH = path.join(__dirname, 'fonts', 'Montserrat-SemiBold.otf');
 const LOGO_PATH = path.join(__dirname, 'assets', 'logo.png');
 
 async function downloadImageAsBase64(url) {
@@ -47,7 +47,7 @@ function createCoverPageHtml(movie, base64Poster, base64Logo) {
     const logoSrc = base64Logo || "";
 
     return html`
-        <div style="display: flex; width: 1080px; height: 1350px; background-color: #bf2728; justify-content: center; align-items: center; position: relative; font-family: 'Glacial Indifference'; color: white;">
+        <div style="display: flex; width: 1080px; height: 1350px; background-color: #bf2728; justify-content: center; align-items: center; position: relative; font-family: 'Montserrat'; color: white;">
             <div style="display: flex; width: 1080px; height: 1350px; position: relative;">
                 <img src="${base64Poster}" style="width: 100%; height: 100%; object-fit: cover;" />
                 
@@ -64,9 +64,14 @@ function createCoverPageHtml(movie, base64Poster, base64Logo) {
                 
                 <!-- Footer -->
                 <div style="position: absolute; bottom: 70px; left: 50px; right: 50px; display: flex; flex-direction: column;">
-                    <div style="font-size: 80px; font-weight: bold; line-height: 1.1; max-width: 860px;">${movie.title}</div>
+                    <div style="font-size: 70px; font-weight: bold; line-height: 1.1; max-width: 860px;">${movie.title}</div>
                     <div style="font-size: 40px; margin-top: 25px; color: #e0e0e0; display: flex;">Réalisé par ${movie.director || 'Inconnu'}</div>
                     <div style="font-size: 36px; margin-top: 20px; color: #bf2728; font-weight: bold; display: flex;">Le ${formatDate(movie.french_release_date)}</div>
+                </div>
+
+                <!-- Genre Badge (Bottom Right) -->
+                <div style="position: absolute; bottom: 70px; right: 50px; display: flex; background-color: #bf2728; padding: 16px 44px; border-radius: 100px; align-items: center; justify-content: center;">
+                    <div style="color: white; font-size: 40px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">${movie.primary_genre || 'Cinéma'}</div>
                 </div>
             </div>
         </div>
@@ -79,7 +84,7 @@ function createSynopsisPageHtml(movie, base64Poster, base64Logo) {
     const logoSrc = base64Logo || "";
 
     return html`
-        <div style="display: flex; width: 1080px; height: 1350px; background-color: #bf2728; justify-content: center; align-items: center; position: relative; font-family: 'Glacial Indifference'; color: white;">
+        <div style="display: flex; width: 1080px; height: 1350px; background-color: #bf2728; justify-content: center; align-items: center; position: relative; font-family: 'Montserrat'; color: white;">
             <div style="display: flex; width: 1080px; height: 1350px; position: relative;">
                 <img src="${base64Poster}" style="width: 100%; height: 100%; object-fit: cover;" />
                 
@@ -96,7 +101,7 @@ function createSynopsisPageHtml(movie, base64Poster, base64Logo) {
                 <!-- Content -->
                 <div style="position: absolute; top: 200px; bottom: 150px; left: 60px; right: 60px; display: flex; flex-direction: column; justify-content: center;">
                     <div style="font-size: 55px; font-weight: bold; color: #bf2728; margin-bottom: 30px; display: flex;">SYNOPSIS</div>
-                    <div style="font-size: 42px; line-height: 1.4; display: flex; flex-wrap: wrap;">${movie.overview || 'Synopsis indisponible.'}</div>
+                    <div style="font-size: 40px; line-height: 1.4; display: flex; flex-wrap: wrap;">${movie.overview || 'Synopsis indisponible.'}</div>
                 </div>
 
                 <!-- Footer -->
@@ -146,8 +151,8 @@ async function main() {
     const fontBold = fs.readFileSync(FONT_BOLD_PATH);
     
     const satoriFonts = [
-        { name: 'Glacial Indifference', data: fontRegular, weight: 400, style: 'normal' },
-        { name: 'Glacial Indifference', data: fontBold, weight: 700, style: 'normal' }
+        { name: 'Montserrat', data: fontRegular, weight: 500, style: 'normal' },
+        { name: 'Montserrat', data: fontBold, weight: 700, style: 'normal' }
     ];
 
     // Load Logo if available

@@ -4,8 +4,25 @@ import requests
 from datetime import datetime, timedelta
 
 # Environment variables
-TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjMjk2NWYzMzlhMjhjODUwYzhjNGY4Zjc1NmIyYzY5MiIsIm5iZiI6MTc3ODMxODc1Mi41NTYsInN1YiI6IjY5ZmVmZGEwMGEwYzdjOTZlN2FlOGNjOSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wp8Fks84UPXGOvVkQRsc1WyIUyvwsIe1827aK8EMdik")
+TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "")
 DATA_DIR = os.environ.get("DATA_DIR", "/data")
+
+def fetch_genre_map():
+    """Fetch the TMDB genre list in French and return a dict mapping ID -> name."""
+    url = "https://api.themoviedb.org/3/genre/movie/list"
+    headers = {
+        "accept": "application/json",
+        "Authorization": f"Bearer {TMDB_API_KEY}"
+    }
+    params = {"language": "fr-FR"}
+    
+    response = requests.get(url, headers=headers, params=params)
+    if response.status_code == 200:
+        genres = response.json().get("genres", [])
+        return {g["id"]: g["name"] for g in genres}
+    else:
+        print(f"Error fetching genres: {response.status_code} - {response.text}")
+        return {}
 
 def get_upcoming_wednesday_to_tuesday():
     """Returns the dates for the upcoming Wednesday and the following Tuesday."""
@@ -47,7 +64,7 @@ def get_weekly_french_releases(start_date, end_date):
     response = requests.get(url, headers=headers, params=params)
     if response.status_code == 200:
         results = response.json().get("results", [])
-        return results[:10]
+        return results[:]
     else:
         print(f"Error fetching movies: {response.status_code} - {response.text}")
         return []
@@ -102,6 +119,11 @@ def main():
     print(f"Found {len(movies)} top movies.")
     
     new_releases = []
+    
+    # Fetch genre map for French genre names
+    genre_map = fetch_genre_map()
+    print(f"Loaded {len(genre_map)} genre mappings.")
+    
     for movie in movies:
         movie_id = movie.get("id")
         if movie_id:
@@ -115,7 +137,8 @@ def main():
                 "title": french_title,
                 "original_title": movie.get("original_title"),
                 "director": director,
-                "french_release_date": movie.get("release_date"), # Primary release date
+                "primary_genre": genre_map.get(movie.get("genre_ids", [None])[0], "Cinéma") if movie.get("genre_ids") else "Cinéma",
+                "french_release_date": movie.get("release_date"),
                 "popularity": movie.get("popularity"),
                 "overview": movie.get("overview"),
                 "poster_path": movie.get("poster_path"),

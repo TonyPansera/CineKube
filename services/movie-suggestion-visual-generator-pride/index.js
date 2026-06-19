@@ -42,8 +42,7 @@ function createCoverPageHtml(movie, base64Poster, base64Logo) {
         : 'Date inconnue';
 
     return html`
-        <div style="display: flex; width: 1080px; height: 1350px; background-color: #bf2728; justify-content: center; align-items: center; position: relative; font-family: 'Montserrat'; color: white;">
-            <div style="display: flex; width: 960px; height: 1350px; position: relative;">
+        <div style="display: flex; width: 1080px; height: 1350px; background-image: linear-gradient(180deg, #E40303 0%, #E40303 16.6%, #FF8C00 16.6%, #FF8C00 33.3%, #FFED00 33.3%, #FFED00 50%, #008026 50%, #008026 66.6%, #004CFF 66.6%, #004CFF 83.3%, #732982 83.3%, #732982 100%); justify-content: center; align-items: center; position: relative; font-family: 'Montserrat'; color: white;">            <div style="display: flex; width: 960px; height: 1350px; position: relative;">
                 <img src="${base64Poster}" style="width: 100%; height: 100%; object-fit: cover;" />
                 
                 <!-- Gradients -->
@@ -74,7 +73,7 @@ function createSynopsisPageHtml(movie, base64Poster, base64Logo) {
     const logoSrc = base64Logo || "";
 
     return html`
-        <div style="display: flex; width: 1080px; height: 1350px; background-color: #bf2728; justify-content: center; align-items: center; position: relative; font-family: 'Montserrat'; color: white;">
+        <div style="display: flex; width: 1080px; height: 1350px; background-image: linear-gradient(180deg, #E40303 0%, #E40303 16.6%, #FF8C00 16.6%, #FF8C00 33.3%, #FFED00 33.3%, #FFED00 50%, #008026 50%, #008026 66.6%, #004CFF 66.6%, #004CFF 83.3%, #732982 83.3%, #732982 100%); justify-content: center; align-items: center; position: relative; font-family: 'Montserrat'; color: white;">            <div style="display: flex; width: 960px; height: 1350px; position: relative;">
             <div style="display: flex; width: 960px; height: 1350px; position: relative;">
                 <img src="${base64Poster}" style="width: 100%; height: 100%; object-fit: cover;" />
                 
