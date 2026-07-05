@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 # Environment variables
 TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "")
-DATA_DIR = os.environ.get("DATA_DIR", "./data")
+DATA_DIR = os.environ.get("DATA_DIR", "/data")
 
 def fetch_genre_map():
     """Fetch the TMDB genre list in French and return a dict mapping ID -> name."""
