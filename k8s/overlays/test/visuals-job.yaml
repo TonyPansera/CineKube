@@ -16,23 +16,11 @@ spec:
         - name: images-volume
           persistentVolumeClaim:
             claimName: cinekube-pvc
-        - name: gdrive-secret-volume
-          secret:
-            secretName: gdrive-secret
       containers:
       - name: weekly-releases-visual-generator
         image: localhost/weekly-releases-visual-generator:local
         imagePullPolicy: Never
-        env:
-          - name: GOOGLE_APPLICATION_CREDENTIALS
-            value: /etc/secrets/gdrive/credentials.json
-          # Uncomment and provide your Google Drive folder ID if you want to upload to a specific folder:
-          # - name: GDRIVE_FOLDER_ID
-          #   value: "YOUR_FOLDER_ID"
         volumeMounts:
           - name: images-volume
             mountPath: /data
-          - name: gdrive-secret-volume
-            mountPath: /etc/secrets/gdrive
-            readOnly: true
   ttlSecondsAfterFinished: 300

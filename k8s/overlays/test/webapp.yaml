@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cinekube-webapp
+  namespace: cinekube-test
+  labels:
+    app: cinekube-webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cinekube-webapp
+  template:
+    metadata:
+      labels:
+        app: cinekube-webapp
+    spec:
+      volumes:
+        - name: images-volume
+          persistentVolumeClaim:
+            claimName: cinekube-pvc
+      containers:
+      - name: webapp
+        image: localhost/cinekube-webapp:local
+        imagePullPolicy: Never
+        ports:
+          - containerPort: 3000
+        env:
+          - name: DATA_DIR
+            value: /data
+        volumeMounts:
+          - name: images-volume
+            mountPath: /data
+            readOnly: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cinekube-webapp-svc
+  namespace: cinekube-test
+spec:
+  type: NodePort
+  selector:
+    app: cinekube-webapp
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+      nodePort: 30080
