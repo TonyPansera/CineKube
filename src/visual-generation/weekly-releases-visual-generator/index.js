@@ -3,6 +3,7 @@ const path = require('path');
 const satori = require('satori').default;
 const { html } = require('satori-html');
 const { Resvg } = require('@resvg/resvg-js');
+const { google } = require('googleapis');
 
 // Configuration
 const DATA_DIR = process.env.DATA_DIR || '/data';
@@ -130,6 +131,38 @@ async function renderToImage(markup, outputPath, fonts) {
     console.log(`Generated: ${outputPath}`);
 }
 
+async function uploadToGoogleDrive(filePath, fileName) {
+    try {
+        const auth = new google.auth.GoogleAuth({
+            scopes: ['https://www.googleapis.com/auth/drive.file']
+        });
+        const drive = google.drive({ version: 'v3', auth });
+        
+        const folderId = process.env.GDRIVE_FOLDER_ID;
+        const fileMetadata = {
+            name: fileName,
+        };
+        if (folderId) {
+            fileMetadata.parents = [folderId];
+        }
+
+        const media = {
+            mimeType: 'image/png',
+            body: fs.createReadStream(filePath)
+        };
+
+        const response = await drive.files.create({
+            resource: fileMetadata,
+            media: media,
+            fields: 'id'
+        });
+        
+        console.log(`Uploaded ${fileName} to Google Drive with ID: ${response.data.id}`);
+    } catch (err) {
+        console.error(`Error uploading ${fileName} to Google Drive:`, err.message);
+    }
+}
+
 async function main() {
     console.log('Starting Visual Generation Phase...');
     
@@ -184,11 +217,15 @@ async function main() {
 
             // Page 1
             const html1 = createCoverPageHtml(movie, base64Poster, base64Logo);
-            await renderToImage(html1, `${prefix}_page1.png`, satoriFonts);
+            const page1Path = `${prefix}_page1.png`;
+            await renderToImage(html1, page1Path, satoriFonts);
+            await uploadToGoogleDrive(page1Path, path.basename(page1Path));
             
             // Page 2
             const html2 = createSynopsisPageHtml(movie, base64Poster, base64Logo);
-            await renderToImage(html2, `${prefix}_page2.png`, satoriFonts);
+            const page2Path = `${prefix}_page2.png`;
+            await renderToImage(html2, page2Path, satoriFonts);
+            await uploadToGoogleDrive(page2Path, path.basename(page2Path));
         }
     }
     
