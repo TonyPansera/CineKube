@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 export default function Dashboard() {
   const [dates, setDates] = useState([]);
@@ -54,14 +55,22 @@ export default function Dashboard() {
           </aside>
 
           <main className="main-content">
+            <div className="action-bar">
+              <a href={`/api/zip?date=${selectedDate}`} className="zip-btn" download>
+                📥 Télécharger tout ({selectedDate}) en .zip
+              </a>
+            </div>
             <div className="grid">
               {images.map(img => (
                 <div className="card" key={img}>
                   <div className="card-img-container">
-                    <img 
+                    <Image 
                       src={`/api/image?path=${selectedDate}/${img}`} 
-                      className="card-img" 
                       alt={img} 
+                      width={180}
+                      height={225}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      unoptimized={false}
                     />
                   </div>
                   <div className="card-content">
