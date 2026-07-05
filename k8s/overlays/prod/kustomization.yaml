@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# 1. On charge la base commune et le fichier de secrets spécifique au Test
+resources:
+  - ../../base
+  - secrets.yaml
+
+# 2. Remplacement automatique : 
+# Tout va être déployé dans le namespace 'cinekube-test'
+namespace: cinekube-prod
+
+# 3. Préfixe (optionnel mais très pratique) : 
+# Vos cronjobs s'appelleront "test-tmdb-deaths-monitor" etc.
+namePrefix: prod-
+
+

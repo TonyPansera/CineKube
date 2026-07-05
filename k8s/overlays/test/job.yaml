@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cinekube-job
+  namespace: cinekube-test
+  labels:
+    app: cinekube
+spec:
+  template:
+    metadata:
+      labels:
+        app: cinekube
+    spec:
+      containers:
+      - name: cinekube-container
+        # Remplace par le nom exact et le tag de ton image importée
+        image: localhost/tmdb-weekly-releases:local
+        imagePullPolicy: Never 
+        envFrom:
+          # Expose toutes les clés du secret comme variables d'environnement
+          - secretRef:
+              name: cinekube-secrets
+        volumeMounts:
+          - name: images-volume
+            # Remplace par le chemin exact où ton code sauvegarde les images
+            mountPath: /data
+      restartPolicy: Never
+      volumes:
+        - name: images-volume
+          persistentVolumeClaim:
+            claimName: cinekube-pvc
+  ttlSecondsAfterFinished: 300
