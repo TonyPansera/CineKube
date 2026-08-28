@@ -11,8 +11,11 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.600.0",
     "@resvg/resvg-js": "^2.6.2",
+    "adm-zip": "^0.5.14",
     "satori": "^0.26.0",
-    "satori-html": "^0.3.2"
+    "satori-html": "^0.3.2",
+    "sharp": "^0.33.4"
   }
 }

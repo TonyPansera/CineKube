@@ -3,6 +3,8 @@ const path = require('path');
 const satori = require('satori').default;
 const { html } = require('satori-html');
 const { Resvg } = require('@resvg/resvg-js');
+const { hasR2Credentials, createClient, uploadFile } = require('./r2');
+const { publishWeek } = require('./publish');
 
 // Configuration
 const DATA_DIR = process.env.DATA_DIR || '/data';
@@ -46,6 +48,8 @@ function createCoverPageHtml(movie, base64Poster, base64Logo) {
     const textDisplay = base64Logo ? "none" : "flex";
     const logoSrc = base64Logo || "";
 
+    const genre = movie.primary_genre || 'Cinéma';
+
     return html`
         <div style="display: flex; width: 1080px; height: 1350px; background-color: #bf2728; justify-content: center; align-items: center; position: relative; font-family: 'Montserrat'; color: white;">
             <div style="display: flex; width: 1080px; height: 1350px; position: relative;">
@@ -62,16 +66,19 @@ function createCoverPageHtml(movie, base64Poster, base64Logo) {
                     <div style="display: ${textDisplay}; font-size: 38px; font-weight: bold; color: #bf2728; background-color: white; padding: 10px 20px; border-radius: 8px;">CineKube</div>
                 </div>
                 
-                <!-- Footer -->
+                <!-- Footer: title full width, then a row that reserves space for
+                     the genre badge so the director line wraps instead of colliding. -->
                 <div style="position: absolute; bottom: 70px; left: 50px; right: 50px; display: flex; flex-direction: column;">
-                    <div style="font-size: 70px; font-weight: bold; line-height: 1.1; max-width: 860px;">${movie.title}</div>
-                    <div style="font-size: 40px; margin-top: 25px; color: #e0e0e0; display: flex;">Réalisé par ${movie.director || 'Inconnu'}</div>
-                    <div style="font-size: 36px; margin-top: 20px; color: #bf2728; font-weight: bold; display: flex;">Le ${formatDate(movie.french_release_date)}</div>
-                </div>
-
-                <!-- Genre Badge (Bottom Right) -->
-                <div style="position: absolute; bottom: 70px; right: 50px; display: flex; background-color: #bf2728; padding: 16px 44px; border-radius: 100px; align-items: center; justify-content: center;">
-                    <div style="color: white; font-size: 40px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">${movie.primary_genre || 'Cinéma'}</div>
+                    <div style="font-size: 70px; font-weight: bold; line-height: 1.1; max-width: 860px; display: flex;">${movie.title}</div>
+                    <div style="display: flex; flex-direction: row; align-items: flex-end; margin-top: 25px;">
+                        <div style="display: flex; flex-direction: column; flex-grow: 1; flex-shrink: 1; flex-basis: 0; margin-right: 40px;">
+                            <div style="font-size: 40px; color: #e0e0e0; display: flex; flex-wrap: wrap; line-height: 1.25;">Réalisé par ${movie.director || 'Inconnu'}</div>
+                            <div style="font-size: 36px; margin-top: 20px; color: #bf2728; font-weight: bold; display: flex;">Le ${formatDate(movie.french_release_date)}</div>
+                        </div>
+                        <div style="display: flex; flex-shrink: 0; background-color: #bf2728; padding: 16px 44px; border-radius: 100px; align-items: center; justify-content: center;">
+                            <div style="color: white; font-size: 40px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; display: flex;">${genre}</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -193,6 +200,14 @@ async function main() {
     }
     
     console.log('Visual Generation Complete!');
+
+    if (hasR2Credentials()) {
+        const client = createClient();
+        await publishWeek(client, weeklyOutputDir, todayStr);
+        await uploadFile(client, JSON_FILE, 'data/weekly_releases.json', 'application/json');
+    } else {
+        console.warn('R2 credentials not set; skipping upload to R2.');
+    }
 }
 
 main().catch(console.error);

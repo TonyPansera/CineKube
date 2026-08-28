@@ -1,13 +1,33 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
+/* Light mode (default): plain beige background */
 :root {
-  --bg-color: #0f1115;
-  --card-bg: rgba(255, 255, 255, 0.04);
-  --card-border: rgba(255, 255, 255, 0.08);
+  --bg-color: #f2ecdf;
+  --card-bg: #ffffff;
+  --card-border: rgba(0, 0, 0, 0.1);
   --accent: #bf2728;
   --accent-hover: #d92d2e;
-  --text-main: #f9fafb;
-  --text-muted: #9ca3af;
+  --text-main: #1c1917;
+  --text-muted: #6b6257;
+  --active-bg: rgba(191, 39, 40, 0.1);
+  --active-border: rgba(191, 39, 40, 0.35);
+  --hover-shadow: rgba(0, 0, 0, 0.15);
+  --img-placeholder: rgba(0, 0, 0, 0.05);
+}
+
+/* Dark mode: plain dark background */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #0f1115;
+    --card-bg: #171a21;
+    --card-border: rgba(255, 255, 255, 0.08);
+    --text-main: #f9fafb;
+    --text-muted: #9ca3af;
+    --active-bg: rgba(191, 39, 40, 0.15);
+    --active-border: rgba(191, 39, 40, 0.3);
+    --hover-shadow: rgba(0, 0, 0, 0.5);
+    --img-placeholder: rgba(255, 255, 255, 0.05);
+  }
 }
 
 body {
@@ -16,10 +36,6 @@ body {
   font-family: 'Inter', sans-serif;
   background-color: var(--bg-color);
   color: var(--text-main);
-  background-image: 
-    radial-gradient(circle at 15% 50%, rgba(191, 39, 40, 0.12), transparent 30%),
-    radial-gradient(circle at 85% 30%, rgba(191, 39, 40, 0.08), transparent 30%);
-  background-attachment: fixed;
   min-height: 100vh;
 }
 
@@ -43,15 +59,36 @@ h1, h2, h3, h4 {
   font-size: 3rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  background: linear-gradient(to right, #fff, #fca5a5);
-  -webkit-background-clip: text;
-  color: transparent;
+  color: var(--text-main);
 }
 
 .subtitle {
   color: var(--text-muted);
   font-size: 1.125rem;
   margin-top: 0.5rem;
+}
+
+/* Storage usage indicator */
+.storage {
+  max-width: 360px;
+  margin: 1.5rem auto 0;
+}
+
+.storage-label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+
+.storage-track {
+  height: 6px;
+  background-color: var(--card-border);
+  overflow: hidden;
+}
+
+.storage-fill {
+  height: 100%;
+  background-color: var(--accent);
 }
 
 /* Layout */
@@ -94,9 +131,9 @@ h1, h2, h3, h4 {
 }
 
 .date-btn.active {
-  background: rgba(191, 39, 40, 0.15);
-  border: 1px solid rgba(191, 39, 40, 0.3);
-  color: #fff;
+  background: var(--active-bg);
+  border: 1px solid var(--active-border);
+  color: var(--text-main);
 }
 
 /* Grid */
@@ -112,7 +149,6 @@ h1, h2, h3, h4 {
   border: 1px solid var(--card-border);
   border-radius: 0;
   overflow: hidden;
-  backdrop-filter: blur(12px);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -120,21 +156,42 @@ h1, h2, h3, h4 {
 
 .card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 20px -5px rgba(191, 39, 40, 0.2);
-  border-color: rgba(191, 39, 40, 0.3);
+  box-shadow: 0 20px 40px -10px var(--hover-shadow);
+  border-color: var(--active-border);
+}
+
+.card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
 }
 
 .card-img-container {
   width: 100%;
   aspect-ratio: 1080 / 1350;
   position: relative;
-  background: rgba(0,0,0,0.2);
+  background: var(--img-placeholder);
 }
 
 .card-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
+  cursor: pointer;
+}
+
+.card-checkbox {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 2;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--accent);
+  border-radius: 3px;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.85);
 }
 
 .card-content {
@@ -169,8 +226,31 @@ h1, h2, h3, h4 {
 
 .action-bar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
   margin-bottom: 2rem;
+}
+
+.action-bar-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.select-toggle {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  text-decoration: underline;
+}
+
+.select-toggle:hover {
+  color: var(--text-main);
 }
 
 .zip-btn {
@@ -193,6 +273,19 @@ h1, h2, h3, h4 {
   background: var(--accent-hover);
 }
 
+.zip-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.zip-btn:disabled:hover {
+  background: var(--accent);
+}
+
+button.zip-btn {
+  font-family: inherit;
+}
+
 .download-btn:hover {
   background: var(--accent-hover);
 }
@@ -211,5 +304,13 @@ h1, h2, h3, h4 {
   .date-btn {
     width: auto;
     white-space: nowrap;
+  }
+  .action-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .action-bar-group {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

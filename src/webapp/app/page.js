@@ -1,12 +1,22 @@
 'use client';
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
+
+function formatBytes(bytes) {
+  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(2)} GB`;
+  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+  return `${(bytes / 1024).toFixed(0)} KB`;
+}
+
+const R2_FREE_TIER_BYTES = 10 * 1024 ** 3; // 10 GB
 
 export default function Dashboard() {
   const [dates, setDates] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [storage, setStorage] = useState(null);
+  const [selected, setSelected] = useState(() => new Set());
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     fetch('/api/dates')
@@ -18,22 +28,87 @@ export default function Dashboard() {
         }
         setLoading(false);
       });
+
+    fetch('/api/storage')
+      .then(res => res.json())
+      .then(data => {
+        if (typeof data.usedBytes === 'number') setStorage(data.usedBytes);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
     if (selectedDate) {
       setImages([]);
+      setSelected(new Set());
       fetch(`/api/images-list?date=${selectedDate}`)
         .then(res => res.json())
         .then(data => setImages(data.images || []));
     }
   }, [selectedDate]);
 
+  const toggleSelect = name => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  const allSelected = images.length > 0 && selected.size === images.length;
+
+  const toggleSelectAll = () => {
+    setSelected(allSelected ? new Set() : new Set(images.map(img => img.name)));
+  };
+
+  const downloadSelection = async () => {
+    if (selected.size === 0 || downloading) return;
+    setDownloading(true);
+    try {
+      const res = await fetch('/api/zip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: selectedDate, names: [...selected] }),
+      });
+      if (!res.ok) {
+        alert('Échec de la génération du zip');
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cinekube-visuals-${selectedDate}-selection.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Échec de la génération du zip');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <div className="container">
       <header className="header">
         <h1 className="title">CineKube Visuals</h1>
         <p className="subtitle">Explore your generated cinema posters</p>
+        {storage !== null && (
+          <div className="storage">
+            <div className="storage-label">
+              Stockage R2 : {formatBytes(storage)} / 10 GB
+            </div>
+            <div className="storage-track">
+              <div
+                className="storage-fill"
+                style={{ width: `${Math.min(100, (storage / R2_FREE_TIER_BYTES) * 100).toFixed(1)}%` }}
+              />
+            </div>
+          </div>
+        )}
       </header>
 
       {loading ? (
@@ -56,30 +131,53 @@ export default function Dashboard() {
 
           <main className="main-content">
             <div className="action-bar">
-              <a href={`/api/zip?date=${selectedDate}`} className="zip-btn" download>
-                📥 Télécharger tout ({selectedDate}) en .zip
-              </a>
+              <div className="action-bar-group">
+                {images.length > 0 && (
+                  <button className="select-toggle" onClick={toggleSelectAll}>
+                    {allSelected ? 'Effacer la sélection' : 'Tout sélectionner'}
+                  </button>
+                )}
+              </div>
+              <div className="action-bar-group">
+                <button
+                  className="zip-btn"
+                  disabled={selected.size === 0 || downloading}
+                  onClick={downloadSelection}
+                >
+                  {downloading
+                    ? 'Préparation…'
+                    : `📦 Télécharger la sélection (${selected.size})`}
+                </button>
+                <a href={`/api/zip?date=${selectedDate}`} className="zip-btn">
+                  📥 Télécharger tout ({selectedDate}) en .zip
+                </a>
+              </div>
             </div>
             <div className="grid">
               {images.map(img => (
-                <div className="card" key={img}>
+                <div
+                  className={`card ${selected.has(img.name) ? 'selected' : ''}`}
+                  key={img.name}
+                >
                   <div className="card-img-container">
-                    <Image 
-                      src={`/api/image?path=${selectedDate}/${img}`} 
-                      alt={img} 
-                      width={180}
-                      height={225}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      unoptimized={false}
+                    <input
+                      type="checkbox"
+                      className="card-checkbox"
+                      checked={selected.has(img.name)}
+                      onChange={() => toggleSelect(img.name)}
+                      aria-label={`Sélectionner ${img.name}`}
+                    />
+                    <img
+                      src={img.thumbUrl}
+                      alt={img.name}
+                      loading="lazy"
+                      className="card-img"
+                      onClick={() => toggleSelect(img.name)}
                     />
                   </div>
                   <div className="card-content">
-                    <div className="card-title">{img.replace('.png', '').replace(/_/g, ' ')}</div>
-                    <a 
-                      href={`/api/image?path=${selectedDate}/${img}`} 
-                      download={img}
-                      className="download-btn"
-                    >
+                    <div className="card-title">{img.name.replace(/_/g, ' ')}</div>
+                    <a href={img.fullUrl} className="download-btn">
                       Save
                     </a>
                   </div>

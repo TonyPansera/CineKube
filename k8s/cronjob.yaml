@@ -34,6 +34,9 @@ spec:
           - name: weekly-releases-visual-generator
             image: localhost/weekly-releases-visual-generator:local
             imagePullPolicy: Never
+            envFrom:
+              - secretRef:
+                  name: cinekube-secrets
             volumeMounts:
               - name: images-volume
                 mountPath: /data

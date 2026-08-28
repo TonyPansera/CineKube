@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cinekube-visuals-job
+  namespace: cinekube-test
+  labels:
+    app: cinekube
+spec:
+  template:
+    metadata:
+      labels:
+        app: cinekube
+    spec:
+      restartPolicy: Never
+      volumes:
+        - name: images-volume
+          persistentVolumeClaim:
+            claimName: cinekube-pvc
+      containers:
+      - name: weekly-releases-visual-generator
+        image: localhost/weekly-releases-visual-generator:local
+        imagePullPolicy: Never
+        envFrom:
+          - secretRef:
+              name: cinekube-secrets
+        volumeMounts:
+          - name: images-volume
+            mountPath: /data
+  ttlSecondsAfterFinished: 300
