@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cinekube-r2-backfill
+  namespace: cinekube-test
+  labels:
+    app: cinekube
+spec:
+  template:
+    metadata:
+      labels:
+        app: cinekube
+    spec:
+      restartPolicy: Never
+      volumes:
+        - name: images-volume
+          persistentVolumeClaim:
+            claimName: cinekube-pvc
+      containers:
+      - name: r2-backfill
+        image: localhost/weekly-releases-visual-generator:local
+        imagePullPolicy: Never
+        command: ["node", "backfill.js"]
+        envFrom:
+          - secretRef:
+              name: cinekube-secrets
+        volumeMounts:
+          - name: images-volume
+            mountPath: /data
+  ttlSecondsAfterFinished: 600

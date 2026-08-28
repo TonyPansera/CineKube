@@ -36,6 +36,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Webapp source lib dir (Python "lib/" rule above would otherwise ignore it)
+!src/webapp/app/lib/
+!src/webapp/app/lib/**
+
 # Environment Variables
 .env
 .env.local
@@ -67,3 +71,8 @@ k8s/secrets/*.yaml
 data/
 recent_deaths.json
 weekly_releases.json
+
+# Next.js
+.next/
+out/
+next-env.d.ts

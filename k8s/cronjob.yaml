@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cinekube-weekly-cronjob
+  namespace: cinekube-test
+  labels:
+    app: cinekube
+spec:
+  schedule: "0 10 * * 6" # Every Saturday at 10 AM UTC
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: cinekube
+        spec:
+          restartPolicy: Never
+          volumes:
+            - name: images-volume
+              persistentVolumeClaim:
+                claimName: cinekube-pvc
+          initContainers:
+          - name: tmdb-weekly-releases
+            image: localhost/tmdb-weekly-releases:local
+            imagePullPolicy: Never
+            envFrom:
+              - secretRef:
+                  name: cinekube-secrets
+            volumeMounts:
+              - name: images-volume
+                mountPath: /data
+          containers:
+          - name: weekly-releases-visual-generator
+            image: localhost/weekly-releases-visual-generator:local
+            imagePullPolicy: Never
+            envFrom:
+              - secretRef:
+                  name: cinekube-secrets
+            volumeMounts:
+              - name: images-volume
+                mountPath: /data
